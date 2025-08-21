@@ -7,6 +7,7 @@ class Article:
 class Author:
     def __init__(self, name):
         self.name = name
+    
 
     def articles(self):
         pass

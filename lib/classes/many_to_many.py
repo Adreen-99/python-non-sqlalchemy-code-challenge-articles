@@ -1,34 +1,61 @@
-# lib/classes/many_to_many.py
-
+# classes/many_to_many.py
+        
 class Author:
-    def __init__(self, name):
+    def __init__(self, name: str):
         if not isinstance(name, str):
-            raise Exception("Author name must be a string")
+            return "name must be of type str"
+        if len(name) == 0:
+            return "name must be longer than 0 characters"
+        
         if len(name.strip()) == 0:
             raise Exception("Author name cannot be empty")
         self._name = name
+    
         self._articles = []
 
     @property
     def name(self):
-        return self._name  # immutable, no setter
+        return self._name
+    
 
-    @property
+    @name.setter
+    def title(self,value):
+        if hasattr(self,"_name"):
+            return "name cannot be changed after instanciation"
+        if not isinstance(value,str):
+            return "name must be a string"
+        if (2 <= len(value) <= 16):
+            return "name must be a string of more than one character"
+        
+        self._name = value
+    def name(self, value):
+        raise Exception("Author name is immutable and cannot be changed")
+
+
     def articles(self):
+        [article for article in Article.all if article.author == self]
+        return 
         return self._articles
 
     def magazines(self):
+        pass
         return list({article.magazine for article in self._articles})
 
     def add_article(self, magazine, title):
+        pass
         return Article(self, magazine, title)
 
     def topic_areas(self):
-        return list({mag.category for mag in self.magazines()})
+        pass
+        if not self._articles:
+            return None
+        return list({article.magazine.category for article in self._articles})
 
 
 class Magazine:
-    def __init__(self, name, category):
+    def __init__(self, name: str, category: str):
+        self._name = None
+        self._category = None
         self.name = name
         self.category = category
         self._articles = []
@@ -38,80 +65,89 @@ class Magazine:
         return self._name
 
     @name.setter
-    def name(self, new_name):
-        if not isinstance(new_name, str):
-            raise Exception("name must be a string")
-        if not (2 <= len(new_name) <= 16):
-            raise Exception("name must be 2–16 characters")
-        self._name = new_name
+    def name(self, value):
+        if isinstance(value, str) and 2 <= len(value.strip()) <= 16:
+            self._name = value
+        else:
+            raise Exception("Magazine name must be a string between 2 and 16 characters")
 
     @property
     def category(self):
         return self._category
 
     @category.setter
-    def category(self, new_category):
-        if not isinstance(new_category, str):
-            raise Exception("category must be a string")
-        if len(new_category.strip()) == 0:
-            raise Exception("category cannot be empty")
-        self._category = new_category
+    def category(self, value: str):
+        if isinstance(value, str) and len(value.strip()) > 0:
+            self._category = value
 
-    @property
     def articles(self):
+        pass
         return self._articles
 
     def contributors(self):
+        pass
         return list({article.author for article in self._articles})
 
     def article_titles(self):
+        pass
+        if not self._articles:
+            return None
         return [article.title for article in self._articles]
 
     def contributing_authors(self):
-        return [author for author in self.contributors()
-                if len([a for a in self._articles if a.author == author]) > 2]
+        pass
+        authors = {}
+        for article in self._articles:
+            authors.setdefault(article.author, 0)
+            authors[article.author] += 1
+        result = [author for author, count in authors.items() if count > 2]
+        return result if result else None   
 
 
 class Article:
-    def __init__(self, author, magazine, title):
-        self.author = author
-        self.magazine = magazine
-        self.title = title
+    all = []   
 
-        # link automatically
+    def __init__(self, author, magazine, title: str):
+        if not isinstance(author, Author):
+            raise Exception("Author must be an Author instance")
+        if not isinstance(magazine, Magazine):
+            raise Exception("Magazine must be a Magazine instance")
+        if not isinstance(title, str):
+            raise Exception("Title must be a string")
+        if not (5 <= len(title) <= 50):
+            raise Exception("Title must be 5-50 characters long")
+
+        self._author = author
+        self._magazine = magazine
+        self._title = title
+
+        # link back
         author._articles.append(self)
         magazine._articles.append(self)
+        Article.all.append(self)  
 
     @property
     def title(self):
-        return self._title  # immutable
+        return self._title 
 
     @title.setter
-    def title(self, new_title):
-        if not isinstance(new_title, str):
-            raise Exception("title must be a string")
-        if not (5 <= len(new_title) <= 50):
-            raise Exception("title must be 5–50 characters")
-        if hasattr(self, "_title"):  # prevents resetting
-            raise AttributeError("title cannot be changed")
-        self._title = new_title
+    def title(self, value):
+        raise Exception("Title is immutable and cannot be changed")
 
     @property
     def author(self):
         return self._author
 
     @author.setter
-    def author(self, new_author):
-        if not isinstance(new_author, Author):
-            raise Exception("author must be an Author")
-        self._author = new_author
+    def author(self, value):
+        if isinstance(value, Author):
+            self._author = value
 
     @property
     def magazine(self):
         return self._magazine
 
     @magazine.setter
-    def magazine(self, new_magazine):
-        if not isinstance(new_magazine, Magazine):
-            raise Exception("magazine must be a Magazine")
-        self._magazine = new_magazine
+    def magazine(self, value):
+        if isinstance(value, Magazine):
+            self._magazine = value
